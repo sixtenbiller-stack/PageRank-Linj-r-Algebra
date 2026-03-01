@@ -2,7 +2,7 @@ Format: <Nr>,<namn>,<bool Trusted>,<länkningar>(separerade med ':') (behåll de
 1,Youtube.com,True,2:3:4:10:15:25:75:95:140:159:180:446:447:448:465:470:500
 2,Facebook.com,True,1:3:5:209:210:220
 3,Twitter.com,True,1:4:12:179
-4,Google.com,True,1:2:3:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25
+4,Google.com,True,1:2:3:5:6:7:8:9:10:11:12:13:14:15:16:17:18:19:20:21:22:23:24:25:143
 5,Instagram.com,True,2:4:18:243:247
 6,Wikipedia.org,True,4:7:8:9:10:14:28:31:147:148:150:152:154:165:172:186:190:191:193:194:195:196:197:198:200:201:203:228:240:241:242:245:249:251:257:258:259:260:271:272:273:301:302:303:304:305:311:367:399:400:431:432:438:441:442:443:444:484:493
 7,Reddit.com,False,5:6:8:11:160:169:170:171:439:440:445
@@ -20,7 +20,7 @@ Format: <Nr>,<namn>,<bool Trusted>,<länkningar>(separerade med ':') (behåll de
 19,Pinterest.com,False,16:18:20:22:171:189:247:248:343
 20,Snapchat.com,False,17:19:21:23:124:125:186:208:209:210:216
 21,Zoom.us,True,18:20:22:24:206:207
-22,Dropbox.com,True,19:21:23:25:205:355:356:357:358:359:360:361:362:363:364:365:366
+22,Dropbox.com,True,19:21:23:25:205:355:356:357:359:360:361:362:363:364:365:366
 23,Slack.com,True,20:22:24:26:320:385:386
 24,Adobe.com,False,21:23:25:27
 25,Trello.com,False,1:22:24:26:28:321:322:323:373
@@ -355,10 +355,10 @@ Format: <Nr>,<namn>,<bool Trusted>,<länkningar>(separerade med ':') (behåll de
 354,Postimages.org,False,171:172:4:353
 355,WeTransfer.com,False,22:13:205:356
 356,Mega.nz,False,22:13:355:357
-357,Mediafire.com,False,22:356:355:358
+357,Mediafire.com,False,22:356:355
 358,LebronJames.com,False,22:357:356:359:360:361:362:363:364:365:366:447:448:501:506
-359,Rapidgator.net,False,22:358:357:360
-360,Ökenråttor.se,False,22:359:358:361:365
+359,Rapidgator.net,False,22:357:360
+360,Ökenråttor.se,False,22:359:361:365
 361,Keep2share.cc,False,22:360:359:362
 362,HemköpFlogsta.se,False,22:361:360:363
 363,IngasKakor.se,False,22:362:361:364
@@ -445,8 +445,8 @@ Format: <Nr>,<namn>,<bool Trusted>,<länkningar>(separerade med ':') (behåll de
 444,Planetmountain.com,False,443:442:6:445
 445,Ukclimbing.com,False,444:443:7:446
 446,Epicv.tv,False,445:15:1:447
-447,Redbull.com,False,446:15:5:448:358
-448,GoPro.com,False,447:1:15:449:358
+447,Redbull.com,False,446:15:5:448
+448,GoPro.com,False,447:1:15:449
 449,Dji.com,False,448:1:11:450
 450,Parrot.com,False,449:448:11:451
 451,Skydio.com,False,450:449:11:452

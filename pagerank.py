@@ -1,57 +1,77 @@
-import random
 import statistics
 
 class hemsida:
-    def __init__(self,nr,namn,trusted,länkningar,d,N): 
+    def __init__(self,nr,namn,trusted,länkningar): 
         self.namn = namn
         self.nr = nr #Unikt nr id
         self.Trusted = trusted
-        self.trustRankVärde = 0
-        self.pageRankVärded1 = 0 #Sparar pagerankvärde med en dämpningsfaktor
-        self.pageRankVärded2 = 0 #Sparar pagerankvärde med annan dämpningsfaktor (för att upptäcka länkningsloops)
-        self.ökningsFaktor = 0
-        self.pageRankVärde = (1-d)/N
-        self.GammaltPageRankVärde = (1-d)/N
+
+        #Temporära värden som används vid beräkningen av pagerank
+        self.pageRankVärde = 0
+        self.GammaltPageRankVärde = 0
+
+
         self.länkningar = länkningar #Lista med sidor den länkar till
-        self.d = d # Dämpningsfaktor, asigneras i mainfunktionen vid initiering av varje objekt
-        self.N = N #Totala antalet sidor
 
-        #Metrik för att veta hur många av hemsidorna som länkar till den är "farm"-sidor
-        #(alltså bara länkar till en hemsida för att boosta dessa PageRank-Värde)
-        self.NrLänkningarFrånSidor = []
-        self.TommaLänkningarMedian = 0
-        self.TommaLänkningarMedelvärde = 0
 
-    def __str__(self):
-        string = f'{self.namn} har PageRank-Värdet: {round(self.GammaltPageRankVärde,7)} och länkar till {len(self.länkningar)} andra sidor och har faktorn {self.pageRankVärded2/self.pageRankVärded1}'
-        return string
+        #Värdena som används för att lista ut om en sida är "sussy" eller inte (om det är en fuskhemsida)
+        self.pageRankVärded1 = 0
+        self.pageRankVärded2 = 0
+        self.ökningsFaktor = 0
+        self.trustRankVärde = 0
+        self.susVärde = 0
         
     #Länkningar är bara en lista med massa nummer som korresponderar till sidor den är länkad till
     #(från dokumentet med alla hemsidor)
-    def länkning(self,sidlista):
-        länkVärde = (self.GammaltPageRankVärde/len(self.länkningar))*self.d #Beräknar värdet av varje av sidans länkning
+    def länkning(self,sidlista,d):
+        länkVärde = (self.GammaltPageRankVärde/len(self.länkningar))*d #Beräknar värdet av varje av sidans länkning
         for i in self.länkningar:
             sidlista[i-1].pageRankVärde += länkVärde #i-1 efterssom python har 0-indexering
 
-    def nollställning(self,baraTrusted): #Funktion för att nollställa mellan iterationerna
+    def nollställning(self,baraTrusted,d,N): #Funktion för att nollställa mellan iterationerna
         self.GammaltPageRankVärde = self.pageRankVärde
         if (not self.Trusted) and baraTrusted:
             self.pageRankVärde = 0
         else:
-            self.pageRankVärde = (1-self.d)/self.N
+            self.pageRankVärde = (1-d)/N
 
-    def LänkningsRäknare(self,sidlista):
-        for i in self.länkningar:
-            sidlista[i-1].NrLänkningarFrånSidor.append(len(self.länkningar))
+def iteration(iterationer,sidlista,d,baraTrusted):
+    if baraTrusted:
+        N = sum([int(sida.Trusted) for sida in sidlista])
+    else:
+        N = len(sidlista)
+    for sida in sidlista:
+        sida.nollställning(baraTrusted,d,N)
+        sida.nollställning(baraTrusted,d,N)
+    for i in range(iterationer):
+        for sida in sidlista:
+            sida.länkning(sidlista,d)
+        for sida in sidlista:
+            sida.nollställning(baraTrusted,d,N)
 
-    def StatistikTommaLänkningar(self):
-        if len(self.NrLänkningarFrånSidor) > 0:
-            self.TommaLänkningarMedelvärde = statistics.mean(self.NrLänkningarFrånSidor)
-            self.TommaLänkningarMedian = statistics.median(self.NrLänkningarFrånSidor)
-        print(self.namn, " har Medelvärde: ",self.TommaLänkningarMedelvärde,"  Median: ",self.TommaLänkningarMedian)
+    returnLista = []
+    for sida in sidlista:
+        returnLista.append([sida.namn,sida.GammaltPageRankVärde])
+    return returnLista
 
 
-def LasInFil(filnamn, d): #Funktion för att läsa in ett "nät" från en text-fil för att köra page-rank på
+def ökningsfaktor(pageRankVärded1, pageRankVärded2):
+    returnLista = []
+    for n in range(len(pageRankVärded1)):
+        returnLista.append([pageRankVärded1[0],(lambda f: max(f, 1/f) if f > 0 else float('inf'))(pageRankVärded1[n][1] / pageRankVärded2[n][1])])
+        #Hittar faktorn som pagerankvärdet ökade/sänktes med när dämpningen höjdes
+    return returnLista
+
+def susVärde(ökningsFaktorLista,trustRankVärdeLista,golv):
+    returnLista = []
+    medelTrustRank = statistics.mean([sida[1] for sida in trustRankVärdeLista])
+
+    for n in range(len(ökningsFaktorLista)):
+        returnLista.append([ökningsFaktorLista[0],medelTrustRank/(trustRankVärdeLista[n][1] + golv)*ökningsFaktorLista[n][1]])
+    return returnLista
+
+
+def LasInFil(filnamn): #Funktion för att läsa in ett "nät" från en text-fil för att köra page-rank på
     sidlista = []
     antalsidor = 0
     with open(str(filnamn),'r',encoding='utf-8',) as f:
@@ -71,65 +91,34 @@ def LasInFil(filnamn, d): #Funktion för att läsa in ett "nät" från en text-f
                 linelist[3] = linelist[3].replace('\n','')
                 länkningar = linelist[3].split(':')
                 länkningar = [int(länkning) for länkning in länkningar] #Konverterar länkningar till lista av intigers
-                sidlista.append(hemsida(int(linelist[0]),str(linelist[1]),trusted,länkningar,d,1))
+                sidlista.append(hemsida(int(linelist[0]),str(linelist[1]),trusted,länkningar))
 
                 antalsidor += 1
 
             except Exception as e:
                 print(e)
                 break
-
-    for sida in sidlista: #Nollställer varje sida 2 gånger för att de ska räkna med korrekt värde för N
-        sida.N = antalsidor
-        sida.nollställning(False)
-        sida.nollställning(False)
         
     return sidlista
 
 def main():
-
-    N = 10
-    d = 0.85
-
-    sidlista = LasInFil("SidorExempel.txt",d)
-
-    for i in range(10000): #Kör 1000 iterationer av PageRank med vanlig dämpningsfaktor (ex. 0.85)
-        for i in sidlista:
-            i.länkning(sidlista)
-        for i in sidlista:
-            i.nollställning(False)
+    sidlista = LasInFil("SidorExempel.txt")
     
-    for i in sidlista: #Förbereder för "anti-fusk" loopen
-        i.d = 0.99
-        i.pageRankVärded1 = i.GammaltPageRankVärde
-        i.nollställning(False)
-        i.nollställning(False)
-    for i in range(10000): #Kör 1000 iterationer av PageRank med dämpningsfaktorn 0.99
-        for i in sidlista:
-            i.länkning(sidlista)
-        for i in sidlista:
-            i.nollställning(False)
+    pageRankd085 = iteration(200,sidlista,0.85,False)
+    pageRankd099 = iteration(200,sidlista,0.99,False)
+    ökningsFaktorLista = ökningsfaktor(pageRankd085,pageRankd099)
+    trustRankVärdeLista = iteration(200,sidlista,0.85,True)
 
-    for i in sidlista:
-        i.pageRankVärded2 = i.GammaltPageRankVärde
+    golv = 0.00001
+    susVärdeLista = susVärde(ökningsFaktorLista,trustRankVärdeLista,golv)
 
-        i.ökningsFaktor = (lambda f: max(f, 1/f) if f > 0 else float('inf'))(i.pageRankVärded2 / i.pageRankVärded1) #Hittar faktorn som pagerankvärdet ökade/sänktes med när dämpningen höjdes
-
-    antalTrusted = sum([int(sida.Trusted) for sida in sidlista]) #Returnerar antalet sidor som är trusted
-    for i in sidlista:#
-        i.N = antalTrusted #Nu är N de trusted sidorna
-        i.nollställning(True)
-        i.nollställning(True)
-        i.d = 0.85
-
-    for i in range(10000): #Kör 1000 iterationer av PageRank med dämpningsfaktorn 0.99
-        for i in sidlista:
-            i.länkning(sidlista)
-        for i in sidlista:
-            i.nollställning(True)
-
-    for i in sidlista:
-        i.trustRankVärde = i.GammaltPageRankVärde
+    for n in range(len(sidlista)):
+        sida = sidlista[n]
+        sida.pageRankVärded1 = pageRankd085[n][1]
+        sida.pageRankVärded2 = pageRankd099[n][1]
+        sida.trustRankVärde = trustRankVärdeLista[n][1]
+        sida.ökningsFaktor = ökningsFaktorLista[n][1]
+        sida.susVärde = susVärdeLista[n][1]
     
     """
         **Teori:**
@@ -144,15 +133,8 @@ def main():
         utrifrån "Trusted" sidor, ex. Wikipedia, Google, Internet Archive etc.
         
     """
-    sidlista.sort(key=lambda sida: sida.ökningsFaktor, reverse=True)
-    
-    """
-    for i in sidlista:
-        print(i)
-    print("Summan av alla PageRank-Värden är: ",sum([sida.pageRankVärded1 for sida in sidlista])," (differansen från 1 pga. flyttalsfel)")
-    print("Summan av alla 099dPageRank-Värden är: ",sum([sida.pageRankVärded2 for sida in sidlista])," (differansen från 1 pga. flyttalsfel)")
-    """
-    #for i in sidlista:
-    #    i.StatistikTommaLänkningar()
-    #    i.SurferController(sidlista,5)
+    sidlista.sort(key=lambda sida: sida.susVärde, reverse=True)
+
+    for sida in sidlista:
+        print(f'{sida.namn} har Sus-Värdet: {sida.susVärde} och har faktorn {sida.ökningsFaktor} och har trustrankvärdet {sida.trustRankVärde}')  
 main()
