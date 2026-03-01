@@ -104,14 +104,18 @@ def LasInFil(filnamn): #Funktion för att läsa in ett "nät" från en text-fil 
 def main():
     sidlista = LasInFil("SidorExempel.txt")
     
+    #Får alla nödvändiga värden för varje sida
     pageRankd085 = iteration(200,sidlista,0.85,False)
     pageRankd099 = iteration(200,sidlista,0.99,False)
     ökningsFaktorLista = ökningsfaktor(pageRankd085,pageRankd099)
     trustRankVärdeLista = iteration(200,sidlista,0.85,True)
 
+    #Beräknar sus-värdet, golvet beslutar hur mycket trustrank-värdet påverkar värdet
+    #Ju lägre golv, desto mer påverkar trustrank-värdet för en sida
     golv = 0.00001
     susVärdeLista = susVärde(ökningsFaktorLista,trustRankVärdeLista,golv)
 
+    #Assignerar alla värdena till objekten i sidlista
     for n in range(len(sidlista)):
         sida = sidlista[n]
         sida.pageRankVärded1 = pageRankd085[n][1]
