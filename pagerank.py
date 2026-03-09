@@ -137,6 +137,8 @@ def main():
         utrifrån "Trusted" sidor, ex. Wikipedia, Google, Internet Archive etc.
         
     """
+
+    #Sorterar och printar sus-värdena för alla sidor i terminalen
     sidlista.sort(key=lambda sida: sida.susVärde, reverse=True)
 
     for sida in sidlista:
